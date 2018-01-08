@@ -1,1 +1,20 @@
-# assignment 3 solution
+namespace :files do
+  desc 'rename file extention yaml to yml '
+  task :rename_yaml do
+    original_extention = ".yaml"
+    new_extention = ".yml"
+    file = ENV["FILE"]
+    file_basename = File.basename(file,original_extention)
+    directory = File.dirname(file)
+    old_file_name = directory + "/" + file_basename + original_extention
+    new_file_name = directory + "/" + file_basename + new_extention
+  
+    if File.exist?(file) == false then 
+      puts "== files:rename_yaml == Error: File #{file} doesn't exist"
+      exit
+    else 
+      puts "== files:rename_yaml == renaming file from #{old_file_name} to #{new_file_name}"
+      File.rename(old_file_name,new_file_name)
+    end
+  end
+end 

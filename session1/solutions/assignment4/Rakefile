@@ -1,1 +1,46 @@
-# assignment 4 solution
+require 'pathname'
+require 'rubygems/package'
+
+desc 'create archive file from a path'
+task :archive do
+
+  archive_ext = "tar.gz"  
+  path = ENV["PATH2TAR"] || "."
+  exclude = ENV["EXCLUDE"] + "," + archive_ext || archive_ext
+
+  exclude_list = exclude.split(',')
+
+  # check if path exist and set the archive file name
+  if Dir.exist?(path) == false then
+    puts "== archive == Error: Path doesn't exist"
+    exit
+  else
+    Dir.chdir("#{path}")
+    puts "== archive == Archive requested for path: #{Dir.pwd}"
+    tar_name = Pathname.new(Dir.pwd).basename.to_s.gsub(/[^a-z,A-Z]/, '_') + archive_ext
+    puts "== archive == Archive will be saved in file: #{tar_name}"
+  end
+
+  # prepare file list and exclude unwanted files 
+  files = FileList.new("#{Dir.pwd.to_s}/*")
+  exclude_list.each do |e|
+    files.exclude(/#{e}$/)
+  end 
+
+  # write the requested files to a tar archive 
+  puts "== archive == Writing files to archive..."
+  File.open(tar_name,"wb") do |file|
+    Zlib::GzipWriter.wrap(file) do |gz|
+      Gem::Package::TarWriter.new(gz) do |tar|
+        files.each do |f|
+          puts "== archive == Writing " + Pathname.new(f).basename.to_s 
+          tar.add_file_simple(Pathname.new(f).basename.to_s,0644,File.read(f).length) do |io|
+            io.write(File.read(f))
+          end
+        end
+      end 
+    end
+  end 
+  puts "== archive == Archive created"
+
+end
